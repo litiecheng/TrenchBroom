@@ -129,13 +129,13 @@ namespace TrenchBroom {
             CHECK_THROWS_AS(Disk::getDirectoryContents(Path("asdf/bleh")), FileSystemException);
             CHECK_THROWS_AS(Disk::getDirectoryContents(env.dir() + Path("does/not/exist")), FileSystemException);
 
-            const std::vector<Path> contents = Disk::getDirectoryContents(env.dir());
-            CHECK(contents.size() == 5u);
-            CHECK(std::find(std::begin(contents), std::end(contents), Path("dir1")) != std::end(contents));
-            CHECK(std::find(std::begin(contents), std::end(contents), Path("dir2")) != std::end(contents));
-            CHECK(std::find(std::begin(contents), std::end(contents), Path("anotherDir")) != std::end(contents));
-            CHECK(std::find(std::begin(contents), std::end(contents), Path("test.txt")) != std::end(contents));
-            CHECK(std::find(std::begin(contents), std::end(contents), Path("test2.map")) != std::end(contents));
+            CHECK_THAT(Disk::getDirectoryContents(env.dir()), Catch::UnorderedEquals(std::vector<Path>{
+                Path("dir1"),
+                Path("dir2"),
+                Path("anotherDir"),
+                Path("test.txt"),
+                Path("test2.map"),
+            }));
         }
 
         TEST_CASE("DiskTest.openFile", "[DiskTest]") {
@@ -230,10 +230,10 @@ namespace TrenchBroom {
 
             CHECK_THROWS_AS(fs.getDirectoryContents(Path("asdf/bleh")), FileSystemException);
 
-            const std::vector<Path> contents = fs.getDirectoryContents(Path("anotherDir"));
-            CHECK(contents.size() == 2u);
-            CHECK(std::find(std::begin(contents), std::end(contents), Path("subDirTest")) != std::end(contents));
-            CHECK(std::find(std::begin(contents), std::end(contents), Path("test3.map")) != std::end(contents));
+            CHECK_THAT(fs.getDirectoryContents(Path("anotherDir")), Catch::UnorderedEquals(std::vector<Path>{
+                Path("subDirTest"),
+                Path("test3.map"),
+            }));
         }
 
         TEST_CASE("DiskFileSystemTest.findItems", "[DiskFileSystemTest]") {
@@ -247,22 +247,22 @@ namespace TrenchBroom {
 #endif
             CHECK_THROWS_AS(fs.findItems(Path("..")), FileSystemException);
 
-            std::vector<Path> items = fs.findItems(Path("."));
-            CHECK(items.size() == 5u);
-            CHECK(std::find(std::begin(items), std::end(items), Path("./dir1")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("./dir2")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("./anotherDir")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("./test.txt")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("./test2.map")) != std::end(items));
+            CHECK_THAT(fs.findItems(Path(".")), Catch::UnorderedEquals(std::vector<Path>{
+                Path("./dir1"),
+                Path("./dir2"),
+                Path("./anotherDir"),
+                Path("./test.txt"),
+                Path("./test2.map"),
+            }));
 
-            items = fs.findItems(Path(""), FileExtensionMatcher("TXT"));
-            CHECK(items.size() == 1u);
-            CHECK(items.front() == Path("test.txt"));
+            CHECK_THAT(fs.findItems(Path(""), FileExtensionMatcher("TXT")), Catch::UnorderedEquals(std::vector<Path>{
+                Path("test.txt"),
+            }));
 
-            items = fs.findItems(Path("anotherDir"));
-            CHECK(items.size() == 2u);
-            CHECK(std::find(std::begin(items), std::end(items), Path("anotherDir/subDirTest")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("anotherDir/test3.map")) != std::end(items));
+            CHECK_THAT(fs.findItems(Path("anotherDir")), Catch::UnorderedEquals(std::vector<Path>{
+                Path("anotherDir/subDirTest"),
+                Path("anotherDir/test3.map"),
+            }));
         }
 
         TEST_CASE("DiskFileSystemTest.findItemsRecursively", "[DiskFileSystemTest]") {
@@ -276,28 +276,28 @@ namespace TrenchBroom {
 #endif
             CHECK_THROWS_AS(fs.findItemsRecursively(Path("..")), FileSystemException);
 
-            std::vector<Path> items = fs.findItemsRecursively(Path("."));
-            CHECK(items.size() == 8u);
-            CHECK(std::find(std::begin(items), std::end(items), Path("./dir1")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("./dir2")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("./anotherDir")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("./anotherDir/test3.map")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("./anotherDir/subDirTest")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("./anotherDir/subDirTest/test2.map")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("./test.txt")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("./test2.map")) != std::end(items));
+            CHECK_THAT(fs.findItemsRecursively(Path(".")), Catch::UnorderedEquals(std::vector<Path>{
+                Path("./dir1"),
+                Path("./dir2"),
+                Path("./anotherDir"),
+                Path("./anotherDir/subDirTest"),
+                Path("./anotherDir/subDirTest/test2.map"),
+                Path("./anotherDir/test3.map"),
+                Path("./test.txt"),
+                Path("./test2.map"),
+            }));
 
-            items = fs.findItemsRecursively(Path(""), FileExtensionMatcher("MAP"));
-            CHECK(items.size() == 3u);
-            CHECK(std::find(std::begin(items), std::end(items), Path("anotherDir/test3.map")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("anotherDir/subDirTest/test2.map")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("test2.map")) != std::end(items));
+            CHECK_THAT(fs.findItemsRecursively(Path(""), FileExtensionMatcher("MAP")), Catch::UnorderedEquals(std::vector<Path>{
+                Path("anotherDir/subDirTest/test2.map"),
+                Path("anotherDir/test3.map"),
+                Path("test2.map"),
+            }));
 
-            items = fs.findItemsRecursively(Path("anotherDir"));
-            CHECK(items.size() == 3u);
-            CHECK(std::find(std::begin(items), std::end(items), Path("anotherDir/test3.map")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("anotherDir/subDirTest")) != std::end(items));
-            CHECK(std::find(std::begin(items), std::end(items), Path("anotherDir/subDirTest/test2.map")) != std::end(items));
+            CHECK_THAT(fs.findItemsRecursively(Path("anotherDir")), Catch::UnorderedEquals(std::vector<Path>{
+                Path("anotherDir/subDirTest"),
+                Path("anotherDir/subDirTest/test2.map"),
+                Path("anotherDir/test3.map"),
+            }));
         }
 
         // getDirectoryContents gets tested thoroughly by the tests for the find* methods
